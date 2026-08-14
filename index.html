@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Question For Kristi 💕</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="floating-hearts" id="floatingHearts" aria-hidden="true"></div>
+
+<main class="stage">
+
+  <!-- SCREEN 1: The Proposal -->
+  <section class="screen" id="screen-proposal" data-screen>
+    <h1 class="title">Kristi, will you go on a date with me? <span class="wiggle">🥹</span></h1>
+    <p class="sad-message" id="sadMessage" aria-live="polite"></p>
+    <div class="button-row" id="proposalButtons">
+      <button class="btn btn-yes" id="yesBtn">Yes 💖</button>
+      <button class="btn btn-no" id="noBtn">No</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: Pick a date type -->
+  <section class="screen hidden" id="screen-type" data-screen>
+    <h2 class="title">Yay!! 🎉 Pick a type of date:</h2>
+    <div class="options-grid" id="typeOptions">
+      <button class="option-card" data-value="Dinner">🍝<span>Dinner</span></button>
+      <button class="option-card" data-value="Movie">🎬<span>Movie</span></button>
+      <button class="option-card" data-value="Picnic">🧺<span>Picnic</span></button>
+      <button class="option-card" data-value="Adventure / Hiking">🥾<span>Adventure</span></button>
+      <button class="option-card" data-value="Surprise me">🎁<span>Surprise me</span></button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: Pick a date -->
+  <section class="screen hidden" id="screen-date" data-screen>
+    <h2 class="title">Perfect choice 😍 Now, when?</h2>
+    <p class="subtitle">Pick a day on the calendar:</p>
+    <div class="calendar" id="calendar">
+      <div class="calendar-header">
+        <button class="cal-nav" id="prevMonth" aria-label="Previous month" type="button">‹</button>
+        <span class="cal-month-label" id="monthLabel"></span>
+        <button class="cal-nav" id="nextMonth" aria-label="Next month" type="button">›</button>
+      </div>
+      <div class="calendar-weekdays">
+        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+    <button class="btn btn-yes" id="confirmDateBtn" disabled>Continue 💌</button>
+  </section>
+
+  <!-- SCREEN 4: Confirmation -->
+  <section class="screen hidden" id="screen-confirm" data-screen>
+    <h2 class="title">It's a date! 💕</h2>
+    <p class="confirm-summary" id="confirmSummary"></p>
+    <p class="subtitle" id="sendStatus">Letting him know now...</p>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
