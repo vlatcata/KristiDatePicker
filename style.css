@@ -1,12 +1,13 @@
 :root {
-  --pink-light: #ffe1ee;
-  --pink: #ffb6d5;
-  --pink-deep: #ff6fa5;
-  --purple: #c8a4ff;
-  --purple-deep: #9b6bff;
+  --pink-light: #ffd6ec;
+  --pink: #ff6fc0;
+  --pink-deep: #ff2d8f;
+  --purple: #c084fc;
+  --purple-deep: #8b3ce0;
   --cream: #fff8fb;
-  --text: #6b4a63;
-  --shadow: rgba(255, 111, 165, 0.35);
+  --text: #5c1a48;
+  --shadow: rgba(255, 45, 143, 0.4);
+  --frame-dark: #241534;
 }
 
 * {
@@ -21,7 +22,7 @@ html, body {
 
 body {
   font-family: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
-  background: linear-gradient(135deg, var(--pink-light), var(--cream) 60%, var(--purple) 140%);
+  background: linear-gradient(180deg, #ffd0ec 0%, #ff8fd6 35%, #ff4fb8 65%, #d43cf0 100%);
   background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
@@ -29,9 +30,61 @@ body {
   position: relative;
 }
 
+.sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sparkle {
+  position: absolute;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+
+.sparkle.s1 { top: 8%; left: 10%; font-size: 1.4rem; animation-delay: 0s; }
+.sparkle.s2 { top: 16%; right: 12%; font-size: 1rem; animation-delay: 0.5s; }
+.sparkle.s3 { top: 32%; left: 6%; font-size: 0.9rem; animation-delay: 1s; }
+.sparkle.s4 { top: 40%; right: 8%; font-size: 1.6rem; animation-delay: 1.5s; }
+.sparkle.s5 { top: 60%; left: 14%; font-size: 1.1rem; animation-delay: 0.8s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.floating-hearts {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.heart {
+  position: absolute;
+  bottom: -10%;
+  font-size: 1.4rem;
+  opacity: 0.7;
+  animation: float-up linear forwards;
+}
+
+@keyframes float-up {
+  to {
+    transform: translateY(-110vh) rotate(30deg);
+    opacity: 0;
+  }
+}
+
 .stage {
   min-height: 100vh;
+  /* iOS Safari's address bar changes 100vh mid-session; svh is the stable
+     visual viewport height and is ignored by browsers that don't support it. */
+  min-height: 100svh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px;
@@ -42,13 +95,10 @@ body {
   width: 100%;
   max-width: 560px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: 28px;
-  padding: 48px 32px;
-  box-shadow: 0 20px 60px var(--shadow);
-  backdrop-filter: blur(6px);
+  padding: 16px 24px;
   animation: pop-in 0.5s ease;
   position: relative;
+  z-index: 1;
 }
 
 .screen.hidden {
@@ -60,10 +110,45 @@ body {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+.avatar-frame {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 24px;
+  background: var(--frame-dark);
+  border-radius: 20px;
+  border: 5px solid #ffffff;
+  box-shadow:
+    0 0 0 4px var(--pink-deep),
+    0 10px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.avatar-placeholder {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.avatar-img.hidden {
+  display: none;
+}
+
 .title {
   font-size: clamp(1.5rem, 5vw, 2.2rem);
   margin: 0 0 8px;
   line-height: 1.3;
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.5);
 }
 
 .wiggle {
@@ -83,13 +168,33 @@ body {
   margin-bottom: 20px;
 }
 
-.sad-message {
-  min-height: 28px;
-  font-size: 1.1rem;
-  font-weight: 600;
+.sad-messages {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.sad-bubble {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--purple-deep);
-  margin: 12px 0 24px;
-  transition: opacity 0.2s ease;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  max-width: 200px;
+  text-align: center;
+  animation: bubble-pop 2s ease forwards;
+}
+
+@keyframes bubble-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9) translateY(-12px); }
 }
 
 .button-row {
@@ -111,6 +216,11 @@ body {
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  /* Touch-friendliness: skip the double-tap-zoom delay, no gray tap flash,
+     no accidental text selection from rapid taps on the dodging button. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .btn:hover {
@@ -165,6 +275,9 @@ body {
   gap: 8px;
   transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .option-card span {
@@ -216,6 +329,8 @@ body {
   padding: 6px 14px;
   border-radius: 50%;
   transition: background 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cal-nav:hover {
@@ -259,6 +374,9 @@ body {
   font-family: inherit;
   color: var(--text);
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .cal-day:hover:not(:disabled):not(.empty) {
@@ -289,27 +407,43 @@ body {
   margin-bottom: 8px;
 }
 
-.floating-hearts {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+.reveal {
+  margin-top: 24px;
+  animation: pop-in 0.5s ease;
+}
+
+.reveal.hidden {
+  display: none;
+}
+
+.reveal-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  margin: 0 0 12px;
+}
+
+.reveal-frame {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  background: var(--frame-dark);
+  border-radius: 18px;
+  border: 4px solid #ffffff;
+  box-shadow:
+    0 0 0 3px var(--pink-deep),
+    0 8px 18px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
-.heart {
-  position: absolute;
-  bottom: -10%;
-  font-size: 1.4rem;
-  opacity: 0.7;
-  animation: float-up linear forwards;
-}
-
-@keyframes float-up {
-  to {
-    transform: translateY(-110vh) rotate(30deg);
-    opacity: 0;
-  }
+.reveal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .confetti {

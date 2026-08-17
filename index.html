@@ -9,13 +9,26 @@
 <body>
 
 <div class="floating-hearts" id="floatingHearts" aria-hidden="true"></div>
+<div class="sparkles" aria-hidden="true">
+  <span class="sparkle s1">✦</span>
+  <span class="sparkle s2">✦</span>
+  <span class="sparkle s3">✦</span>
+  <span class="sparkle s4">✦</span>
+  <span class="sparkle s5">✦</span>
+</div>
 
 <main class="stage">
 
+  <!-- Persists across every screen so the hamster's reaction follows along -->
+  <div class="avatar-frame">
+    <span class="avatar-placeholder" id="hamsterPlaceholder">🐹</span>
+    <img class="avatar-img hidden" id="hamsterImg" alt="">
+  </div>
+
   <!-- SCREEN 1: The Proposal -->
   <section class="screen" id="screen-proposal" data-screen>
-    <h1 class="title">Kristi, will you go on a date with me? <span class="wiggle">🥹</span></h1>
-    <p class="sad-message" id="sadMessage" aria-live="polite"></p>
+    <h1 class="title">Kristi, will you go<br>out with me?</h1>
+    <div class="sad-messages" id="sadMessages" aria-live="polite"></div>
     <div class="button-row" id="proposalButtons">
       <button class="btn btn-yes" id="yesBtn">Yes 💖</button>
       <button class="btn btn-no" id="noBtn">No</button>
@@ -57,11 +70,17 @@
     <h2 class="title">It's a date! 💕</h2>
     <p class="confirm-summary" id="confirmSummary"></p>
     <p class="subtitle" id="sendStatus">Letting him know now...</p>
+    <div class="reveal hidden" id="revealSection">
+      <p class="reveal-text">You know what happens after...</p>
+      <div class="reveal-frame">
+        <img class="reveal-img" src="assets/hamsters/perv.jpg" alt="">
+      </div>
+    </div>
     <div class="confetti" id="confetti" aria-hidden="true"></div>
   </section>
 
 </main>
 
-<script src="script.js"></script>
+<script src="script.js" defer></script>
 </body>
 </html>

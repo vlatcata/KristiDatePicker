@@ -19,6 +19,47 @@ const SAD_MESSAGES = [
 const DODGE_AFTER_CLICKS = 4;
 const DODGE_RADIUS = 130;
 
+// Sad hamster images, escalating in intensity to match SAD_MESSAGES above.
+const HAMSTER_SAD = [
+  "assets/hamsters/sad-1.png",
+  "assets/hamsters/sad-2.png",
+  "assets/hamsters/sad-3.png",
+  "assets/hamsters/sad-4.png",
+  "assets/hamsters/sad-5.png",
+  "assets/hamsters/sad-6.png",
+  "assets/hamsters/sad-7.png",
+  "assets/hamsters/sad-8.png",
+];
+
+// Happy hamster images shown as she moves through the flow after saying yes.
+const HAMSTER_HAPPY = {
+  idle: "assets/hamsters/happy-idle.png",
+  yes: "assets/hamsters/happy-yes.png",
+  date: "assets/hamsters/happy-date.png",
+  confirm: "assets/hamsters/happy-confirm.png",
+};
+
+const hamsterImg = document.getElementById("hamsterImg");
+const hamsterPlaceholder = document.getElementById("hamsterPlaceholder");
+
+function setHamster(src) {
+  hamsterImg.src = src;
+  hamsterImg.classList.remove("hidden");
+  hamsterPlaceholder.style.display = "none";
+}
+
+// Fetch every hamster image into the browser cache up front. Without this,
+// each click was triggering a fresh network request for a ~100-600KB image,
+// so fast clicking outran the loads and the picture appeared stuck/laggy.
+const preloadedImages = [];
+[...HAMSTER_SAD, ...Object.values(HAMSTER_HAPPY), "assets/hamsters/perv.jpg"].forEach((src) => {
+  const img = new Image();
+  img.src = src;
+  preloadedImages.push(img);
+});
+
+setHamster(HAMSTER_HAPPY.idle);
+
 const screens = {
   proposal: document.getElementById("screen-proposal"),
   type: document.getElementById("screen-type"),
@@ -35,7 +76,7 @@ function showScreen(name) {
 
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
-const sadMessageEl = document.getElementById("sadMessage");
+const sadMessagesEl = document.getElementById("sadMessages");
 
 let noClicks = 0;
 let dodgeActive = false;
@@ -47,25 +88,77 @@ function bumpButtonSizes() {
   noBtn.style.transform = `scale(${noScale})`;
 }
 
+function spawnSadBubble(text) {
+  const bubble = document.createElement("div");
+  bubble.className = "sad-bubble";
+  bubble.textContent = text;
+  // Scatter around the card itself, slightly beyond its edges too.
+  const left = -10 + Math.random() * 120;
+  const top = -10 + Math.random() * 120;
+  bubble.style.left = `${left}%`;
+  bubble.style.top = `${top}%`;
+  sadMessagesEl.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 2000);
+}
+
 function handleNoInteraction() {
   noClicks += 1;
-  const msg = SAD_MESSAGES[Math.min(noClicks - 1, SAD_MESSAGES.length - 1)];
-  sadMessageEl.textContent = msg;
+  const index = Math.min(noClicks - 1, SAD_MESSAGES.length - 1);
+  spawnSadBubble(SAD_MESSAGES[index]);
+  setHamster(HAMSTER_SAD[index]);
   bumpButtonSizes();
   if (noClicks >= DODGE_AFTER_CLICKS) {
     activateDodge();
   }
 }
 
-function relocateNoButton() {
+// The point inside [minCx,maxCx] x [minCy,maxCy] that is farthest from
+// (cursorX, cursorY). For an axis-aligned box the farthest point is always
+// one of its corners, found by independently picking whichever bound is
+// farther on each axis.
+function farthestSafePoint(cursorX, cursorY, bounds) {
+  const x = Math.abs(bounds.minCx - cursorX) > Math.abs(bounds.maxCx - cursorX) ? bounds.minCx : bounds.maxCx;
+  const y = Math.abs(bounds.minCy - cursorY) > Math.abs(bounds.maxCy - cursorY) ? bounds.minCy : bounds.maxCy;
+  return { x, y };
+}
+
+// Nudges the button a limited distance away from (cursorX, cursorY),
+// clamped so it always stays fully inside the viewport. If that clamped
+// step still leaves it within striking distance (e.g. it was pinned in a
+// corner with nowhere further to go), it jumps to whichever corner of the
+// screen is guaranteed farthest from the cursor instead — still fully
+// on-screen, just decisive instead of trapped.
+function dodgeAwayFrom(cursorX, cursorY) {
   const rect = noBtn.getBoundingClientRect();
   const margin = 16;
-  const maxX = Math.max(window.innerWidth - rect.width - margin, margin);
-  const maxY = Math.max(window.innerHeight - rect.height - margin, margin);
-  const newX = margin + Math.random() * (maxX - margin);
-  const newY = margin + Math.random() * (maxY - margin);
-  noBtn.style.left = `${newX}px`;
-  noBtn.style.top = `${newY}px`;
+  const bounds = {
+    minCx: margin + rect.width / 2,
+    maxCx: window.innerWidth - margin - rect.width / 2,
+    minCy: margin + rect.height / 2,
+    maxCy: window.innerHeight - margin - rect.height / 2,
+  };
+
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  let dx = cx - cursorX;
+  let dy = cy - cursorY;
+  const dist = Math.hypot(dx, dy) || 1;
+  dx /= dist;
+  dy /= dist;
+
+  const step = 130;
+  let newCx = Math.min(Math.max(cx + dx * step + (Math.random() - 0.5) * 40, bounds.minCx), bounds.maxCx);
+  let newCy = Math.min(Math.max(cy + dy * step + (Math.random() - 0.5) * 40, bounds.minCy), bounds.maxCy);
+
+  const resultingDist = Math.hypot(newCx - cursorX, newCy - cursorY);
+  if (resultingDist < DODGE_RADIUS + 20) {
+    const safe = farthestSafePoint(cursorX, cursorY, bounds);
+    newCx = safe.x;
+    newCy = safe.y;
+  }
+
+  noBtn.style.left = `${newCx - rect.width / 2}px`;
+  noBtn.style.top = `${newCy - rect.height / 2}px`;
 }
 
 function handlePointerMove(e) {
@@ -75,7 +168,7 @@ function handlePointerMove(e) {
   const cy = rect.top + rect.height / 2;
   const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
   if (dist < DODGE_RADIUS) {
-    relocateNoButton();
+    dodgeAwayFrom(e.clientX, e.clientY);
   }
 }
 
@@ -86,31 +179,76 @@ function activateDodge() {
   noBtn.classList.add("dodging");
   noBtn.style.left = `${rect.left}px`;
   noBtn.style.top = `${rect.top}px`;
+  // Re-parent to <body> so its fixed position is always relative to the
+  // real viewport — any ancestor with a transform/filter/backdrop-filter
+  // would otherwise silently redefine the containing block and send it
+  // to the wrong spot (this is what caused the old teleport-off-screen bug).
+  document.body.appendChild(noBtn);
   document.addEventListener("pointermove", handlePointerMove);
-  window.addEventListener("scroll", relocateNoButton, { passive: true });
+  // A small startled nudge to the right, not a teleport, so the shift into
+  // "dodge mode" reads as a reaction rather than a jump-scare.
+  setTimeout(() => {
+    const margin = 16;
+    const maxLeft = window.innerWidth - rect.width - margin;
+    noBtn.style.left = `${Math.min(rect.left + 60, maxLeft)}px`;
+  }, 20);
 }
 
 function deactivateDodge() {
   dodgeActive = false;
   document.removeEventListener("pointermove", handlePointerMove);
-  window.removeEventListener("scroll", relocateNoButton);
 }
+
+// Catches the cursor actually entering the button's box, in case a very
+// fast mouse movement jumped past the proximity check in handlePointerMove.
+noBtn.addEventListener("pointerenter", (e) => {
+  if (dodgeActive) {
+    dodgeAwayFrom(e.clientX, e.clientY);
+  }
+});
 
 noBtn.addEventListener("pointerdown", (e) => {
   if (dodgeActive) {
     e.preventDefault();
-    relocateNoButton();
+    dodgeAwayFrom(e.clientX, e.clientY);
     handleNoInteraction();
   }
 });
+
+// Some mobile browsers (older Safari especially) don't reliably suppress
+// the synthetic click from preventDefault() on pointerdown alone — this is
+// a defensive backstop specifically for touch. It only blocks the ghost
+// click; the actual dodge + click-count already happened in pointerdown.
+noBtn.addEventListener(
+  "touchstart",
+  (e) => {
+    if (dodgeActive) {
+      e.preventDefault();
+    }
+  },
+  { passive: false }
+);
 
 noBtn.addEventListener("click", () => {
   if (dodgeActive) return; // pointerdown already handled it
   handleNoInteraction();
 });
 
+// Tab+Enter/Space activates a button by keyboard, bypassing the mouse
+// entirely — without this, dodging wouldn't stop a keyboard-driven press.
+noBtn.addEventListener("keydown", (e) => {
+  if (dodgeActive && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    const rect = noBtn.getBoundingClientRect();
+    dodgeAwayFrom(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    handleNoInteraction();
+  }
+});
+
 yesBtn.addEventListener("click", () => {
   deactivateDodge();
+  noBtn.style.display = "none"; // in case dodge mode moved it to <body>
+  setHamster(HAMSTER_HAPPY.yes);
   showScreen("type");
 });
 
@@ -127,6 +265,7 @@ typeOptions.addEventListener("click", (e) => {
   selectedType = card.dataset.value;
   setTimeout(() => {
     renderCalendar();
+    setHamster(HAMSTER_HAPPY.date);
     showScreen("date");
   }, 350);
 });
@@ -219,6 +358,7 @@ nextMonthBtn.addEventListener("click", () => {
 });
 
 confirmDateBtn.addEventListener("click", () => {
+  setHamster(HAMSTER_HAPPY.confirm);
   showScreen("confirm");
   finalize();
 });
@@ -227,10 +367,12 @@ confirmDateBtn.addEventListener("click", () => {
 
 const confirmSummary = document.getElementById("confirmSummary");
 const sendStatus = document.getElementById("sendStatus");
+const revealSection = document.getElementById("revealSection");
 
 async function finalize() {
   confirmSummary.textContent = `${selectedType} — ${selectedDateLabel}`;
   launchConfetti();
+  setTimeout(() => revealSection.classList.remove("hidden"), 1500);
 
   const message = `She said YES! 💕\nDate type: ${selectedType}\nDate: ${selectedDateLabel} (${selectedDateISO})`;
 
@@ -244,13 +386,15 @@ async function finalize() {
       method: "POST",
       body: message,
       headers: {
-        Title: "She said yes! 💕",
+        // HTTP header values must be Latin-1 — an emoji here throws
+        // immediately and silently kills the whole request before it's sent.
+        Title: "She said yes!",
         Tags: "heart,tada",
       },
     });
-    sendStatus.textContent = "He's been told 📲";
+    sendStatus.textContent = "I've been notified 📲";
   } catch (err) {
-    sendStatus.textContent = "Couldn't send the notification — text him just in case 😅";
+    sendStatus.textContent = "Couldn't send the notification — text me just in case 😅";
   }
 }
 
