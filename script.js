@@ -433,3 +433,12 @@ function launchConfetti() {
     setTimeout(() => piece.remove(), (duration + 0.5) * 1000);
   }
 }
+
+/* ---------------- PWA: service worker registration ---------------- */
+// Required for Chrome to treat this as a real installable PWA — without
+// it, "Add to Home Screen" falls back to a shortcut that ignores the
+// manifest's icons.
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
